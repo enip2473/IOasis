@@ -1,6 +1,6 @@
 import sqlite3, json
 
-class User:
+class Codeforces:
     def __init__(self): # create an empty user database
         self.conn = sqlite3.connect('users.db')
         self.conn.execute('''
@@ -67,7 +67,7 @@ class User:
 
 
 if __name__ == "__main__":
-    db = User()
+    db = Codeforces()
     db.conn.execute("DELETE FROM CHALLENGES")
     db.insert(1234, "enip", "enip", {"dp" : 1900, "data_structure" : 100})
     print(db.get_user(1234, "enip"))

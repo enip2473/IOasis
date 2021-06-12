@@ -1,4 +1,4 @@
-import requests
+import requests, os, random, asyncio, userdata, time
 
 problems = []
 
@@ -6,9 +6,9 @@ def init(): # get all problems on codeforces
     global problems
     r = requests.get(url = "https://codeforces.com/api/problemset.problems")
     problems = r.json()["result"]["problems"]
+    print("Cf Data OK!")
 
 def query(tag : str, rating : int): # return a list of problems with specific tag and ratings
-    global problems
     result = []
     tag = tag.lower()
     for problem in problems:
@@ -17,23 +17,23 @@ def query(tag : str, rating : int): # return a list of problems with specific ta
                 result.append("{}/{}".format(problem['contestId'], problem['index']))
         except:
             pass
-    print(result)
     return result
 
+# if found return the time of that submission, else return -1
 def status(user : str):
     url = "https://codeforces.com/api/user.status?handle={}&from=1&count=5".format(user)
     r = requests.get(url = url)
     result = r.json()["result"]
-    ans = []
+    return result
+
+def check_verdict(handle : str, problemname : str, verdict : str):
+    result = status(handle)
     for res in result:
-        ans.append((res["verdict"], "{}/{}".format(res["problem"]['contestId'], res["problem"]['index'])))
-    print(ans)
-    return ans
-
-
+        name = "{}/{}".format(res["problem"]["contestId"], res["problem"]["index"])
+        if res["verdict"] == verdict and name == problemname:
+            return res["creationTimeSeconds"]
+    return -1
 
 if __name__ == "__main__":
-    #init()
-    #query("dp", 1900)
     print(status("enip"))
     

@@ -42,6 +42,18 @@ class Codeforces(commands.Cog):
             await ctx.send("{} Challenge Start! Time Limit is 1 hour.\n Type .finish after you finish it.".format(ctx.author.mention))
             self.db.insert_challenge(ctx.guild.id, ctx.author.name, problem, dif, round(time.time()))
 
+    @commands.command(brief = "Forfeit the challenge")
+    async def ff(self, ctx):
+        # check ongoing challenges
+        challenge = self.db.get_challenge(ctx.guild.id, ctx.author.name)
+        if challenge == []:
+            await ctx.send("You don't have any ongoing challenge!")
+            return
+        # delete the challenge and fail
+        self.db.delete_challenge(ctx.guild.id, ctx.author.name)
+        await ctx.send("Challenge failed.")
+        # TODO fail(problemname, )
+
     @commands.command(brief = "Finish the challenge")
     async def finish(self, ctx):
         # check ongoing challenges
@@ -60,7 +72,7 @@ class Codeforces(commands.Cog):
             await ctx.send("Challenge complete!")
             self.db.delete_challenge(ctx.guild.id, ctx.author.name)
         else:
-            await ctx.send("You haven't completed your {} challenge".format(problemname))
+            await ctx.send("You haven't completed your {} challenge.\nTo forfeit, enter .ff.".format(problemname))
 
     @commands.command(brief = "Register your codeforces account")
     async def register(self, ctx, handle): 
@@ -80,14 +92,9 @@ class Codeforces(commands.Cog):
         #check if there's a CE
         if cf.check_verdict(handle, problem, "COMPILATION_ERROR") > 0:
             await ctx.send("Successfully registered {}'s handle as {}".format(ctx.author.mention, handle))
-            self.db.insert(ctx.guild.id, ctx.author.name, handle)
+            self.db.insert_user(ctx.guild.id, ctx.author.name, handle)
         else:
             await ctx.send("{} Failed. Try again.".format(ctx.author.mention))
 
 
 
-n = int(input())
-if n % 2 == 1:
-    print(0)
-else:
-    print(1<<(n//2))

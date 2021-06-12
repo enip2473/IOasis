@@ -22,7 +22,7 @@ class Codeforces:
         ''')
 
 
-    def insert(self, guild : int, username : str, cf_handle : str, rating = {}): # insert a user in database
+    def insert_user(self, guild : int, username : str, cf_handle : str, rating = {}): # insert a user in database
         if self.get_user(guild, username) != []:
             print("User exists!")
             return 

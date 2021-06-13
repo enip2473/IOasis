@@ -14,5 +14,5 @@ async def reload(ctx, extension):
     bot.reload_extension(extension)
     print("Reload complete.")
 
-bot.load_extension("cogs")
+bot.load_extension("cf_cog")
 bot.run(token)

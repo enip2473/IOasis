@@ -9,3 +9,9 @@ class Challenge(models.Model):
     ProblemName = models.CharField(max_length=100)
     Difficulty = models.IntegerField(default=0)
     Time = models.DateTimeField()
+
+    def __str__(self):
+        return self.ProblemName
+
+    class Meta:
+        db_table = 'Challenge'

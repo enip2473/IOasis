@@ -5,11 +5,11 @@
 ### 使用方法 (Linux OS)
 1. 開啟 virtualenviroment
 	```
-	source venv/bin/activate
+	source bin/activate
 	```
 2. 開啟 web
 	```
-	python3 venv/src/manage.py runserver
+	python3 src/manage.py runserver
 	```
 
 3. 開啟網頁瀏覽

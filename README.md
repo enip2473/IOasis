@@ -2,6 +2,23 @@
 
 ## Web
 
+### 使用方法 (Linux OS)
+1. 開啟 virtualenviroment
+	```
+	source venv/bin/activate
+	```
+2. 開啟 web
+	```
+	python3 venv/src/manage.py runserver
+	```
+
+3. 開啟網頁瀏覽
+	127.0.0.1:8000
+
+### features
+- 透過網頁註冊帳號
+- 透過 admin page 在網頁上修改資料庫內容
+
 ## Discord_bot
 
 使用方法：裝完 requirements.txt 後運行 main.py

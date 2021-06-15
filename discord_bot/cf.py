@@ -22,7 +22,9 @@ def query(tag : str, rating : int): # return a list of problems with specific ta
 # if found return the time of that submission, else return -1
 def status(user : str):
     url = "https://codeforces.com/api/user.status?handle={}&from=1&count=5".format(user)
+    print(url)
     r = requests.get(url = url)
+    print(r.status_code)
     result = r.json()["result"]
     return result
 

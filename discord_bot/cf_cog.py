@@ -11,17 +11,21 @@ class Codeforces(commands.Cog):
         self.db = userdata.Codeforces()
         cf.init()
 
+    async def check_register(self, ctx):
+        if handle := await self.db.get_handle(ctx.author.id) == "":
+            await ctx.send("You haven't register your handle!\nType .register to register.")
+            return ""
+        return handle
+
     @commands.command(brief = "Enter a tag and a problem difficulty")
     async def chal(self, ctx, dif = 1500, tag = "all"):
         # check if the user have registered his handle 
-        if self.db.get_user(ctx.guild.id, ctx.author.name) == []:
-            await ctx.send("You haven't register your handle!\nType .register to register.")
-            return
+        if self.check_register(ctx) == "" : return
 
         # check for ongoing challenges
-        challenge = self.db.get_challenge(ctx.guild.id, ctx.author.name)
+        challenge = self.db.get_challenge(ctx.author.id)
         if challenge != []:
-            await ctx.send("You have an ongoing challenge")
+            await ctx.send("You have an ongoing challenge.\nType .ff to forfeit it.")
             return
 
         # return a problem
@@ -40,37 +44,36 @@ class Codeforces(commands.Cog):
             await ctx.send("Challenge cancelled.")
         except:
             await ctx.send("{} Challenge Start! Time Limit is 1 hour.\n Type .finish after you finish it.".format(ctx.author.mention))
-            self.db.insert_challenge(ctx.guild.id, ctx.author.name, problem, dif, round(time.time()))
+            self.db.insert_challenge(ctx.author.id, problem, dif, round(time.time()))
 
     @commands.command(brief = "Forfeit the challenge")
     async def ff(self, ctx):
         # check ongoing challenges
-        challenge = self.db.get_challenge(ctx.guild.id, ctx.author.name)
+        challenge = self.db.get_challenge(ctx.author.id)
         if challenge == []:
             await ctx.send("You don't have any ongoing challenge!")
             return
         # delete the challenge and fail
-        self.db.delete_challenge(ctx.guild.id, ctx.author.name)
+        self.db.delete_challenge(ctx.author.id)
         await ctx.send("Challenge failed.")
         # TODO fail(problemname, )
 
     @commands.command(brief = "Finish the challenge")
     async def finish(self, ctx):
         # check ongoing challenges
-        challenge = self.db.get_challenge(ctx.guild.id, ctx.author.name)
+        challenge = self.db.get_challenge(ctx.author.id)
         if challenge == []:
             await ctx.send("You don't have any ongoing challenge!")
             return
         
         #get user status
-        user = self.db.get_user(ctx.guild.id, ctx.author.name)
-        handle = user[0][3]
+        handle = self.db.get_handle(ctx.author.id)
         problemname, difficulty, time = challenge[0]
 
         if (time := cf.check_verdict(handle, problemname, "OK")) > 0:
             # TODO : check time and change rating
             await ctx.send("Challenge complete!")
-            self.db.delete_challenge(ctx.guild.id, ctx.author.name)
+            self.db.delete_challenge(ctx.author.id)
         else:
             await ctx.send("You haven't completed your {} challenge.\nTo forfeit, enter .ff.".format(problemname))
 
@@ -78,8 +81,8 @@ class Codeforces(commands.Cog):
     async def register(self, ctx, handle): 
 
         #check if user in database
-        if (arr := self.db.get_user(ctx.guild.id, ctx.author.name)) != []:
-            await ctx.send("You have already registered !\nYour handle is {}.".format(arr[0][3]))
+        if (cf_handle := self.db.get_handle(ctx.author.id)) != "":
+            await ctx.send("You have already registered !\nYour handle is {}.".format(cf_handle))
             return
         
         # ask user to submit a CE
@@ -92,9 +95,20 @@ class Codeforces(commands.Cog):
         #check if there's a CE
         if cf.check_verdict(handle, problem, "COMPILATION_ERROR") > 0:
             await ctx.send("Successfully registered {}'s handle as {}".format(ctx.author.mention, handle))
-            self.db.insert_user(ctx.guild.id, ctx.author.name, handle)
+            self.db.insert_user(ctx.author.id, handle)
         else:
             await ctx.send("{} Failed. Try again.".format(ctx.author.mention))
 
-
+    @commands.command(brief = "See you current rating on every subject.")
+    async def profile(self, ctx): 
+        
+        #check if user in database
+        if (cf_handle := self.check_register(ctx)) == False : return
+        
+        # get ratings
+        ratings = self.db.get_ratings(ctx.author.id)
+        string = ""
+        for text, rating in ratings:
+            string += "{} : {}\n".format(text, rating)
+        await ctx.send(string)
 

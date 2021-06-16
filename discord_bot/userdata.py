@@ -10,19 +10,18 @@ class Codeforces:
             password TEXT,
             discord_id INTEGER,
             cf_handle TEXT,
-            implementation_rating INTEGER DEFAULT 0,
-            dp_rating INTEGER DEFAULT 0,
-            graph_rating INTEGER DEFAULT 0,
-            math_rating INTEGER DEFAULT 0,
-            datastructure_rating INTEGER DEFAULT 0,
-            greedy_rating INTEGER DEFAULT 0);
+            implementation_rating INTEGER DEFAULT 500,
+            dp_rating INTEGER DEFAULT 500,
+            graph_rating INTEGER DEFAULT 500,
+            math_rating INTEGER DEFAULT 500,
+            datastructure_rating INTEGER DEFAULT 500,
+            greedy_rating INTEGER DEFAULT 500);
         ''')
         self.conn.execute('''
             CREATE TABLE IF NOT EXISTS CHALLENGES
             (id INTEGER PRIMARY KEY AUTOINCREMENT,
             discord_id INTEGER NOT NULL,
             problemname TEXT NOT NULL,
-            difficulty INTEGER NOT NULL,
             time INTEGER NOT NULL);
         ''')
 
@@ -55,26 +54,37 @@ class Codeforces:
             WHERE discord_id = ?
         '''
         res = self.conn.execute(sql, (discord_id,))
-        texts = ["handle", "implementation", "dp", "graph", "math", "data structure", "greedy"]
+        texts = ["handle", "implementation", "dp", "graphs", "math", "data structures", "greedy"]
         ratings = res.fetchone()
+        print(ratings)
         return list(zip(texts, ratings))
+    
+    def update_ratings(self, discord_id, ratings):
+        ratings = ratings[1:]
+        print(ratings)
+        texts = ["implementation_rating", "dp_rating", "graph_rating", "math_rating", "datastructure_rating", "greedy_rating"]
+        for text, rating in list(zip(texts, ratings)):
+            sql = "UPDATE USERS SET {} = ? WHERE discord_id = ?".format(text)
+            self.conn.execute(sql, (rating, discord_id))
+        self.conn.commit()
         
-    def insert_challenge(self, discord_id : int, problemname : str, difficulty : int, time : int):
+    def insert_challenge(self, discord_id : int, problemname : str, time : int):
         sql = ''' 
-            INSERT INTO CHALLENGES(discord_id, problemname, difficulty, time)
-            VALUES(?,?,?,?)
+            INSERT INTO CHALLENGES(discord_id, problemname, time)
+            VALUES(?,?,?)
         '''
-        challenge = (discord_id, problemname, difficulty, time)
+        challenge = (discord_id, problemname, time)
+        print(challenge)
         self.conn.execute(sql, challenge)
         self.conn.commit()
 
     def get_challenge(self, discord_id : int):
         sql = '''
-            SELECT problemname, difficulty, time FROM CHALLENGES
+            SELECT problemname, time FROM CHALLENGES
             WHERE discord_id = ?
         '''
         res = self.conn.execute(sql, (discord_id,))
-        return res.fetchall()
+        return res.fetchone()
     
     def delete_challenge(self, discord_id : int):
         sql = ''' 
@@ -88,3 +98,5 @@ if __name__ == "__main__":
     db = Codeforces()
     db.insert_user(1234, "enip")
     print(db.get_handle(1234))
+    db.conn.execute("DROP TABLE challenges")
+    db.conn.commit()

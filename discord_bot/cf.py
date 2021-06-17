@@ -1,6 +1,4 @@
-import requests, os, random, asyncio, userdata, time
-
-from requests.models import to_native_string
+import requests
 
 problems = []
 

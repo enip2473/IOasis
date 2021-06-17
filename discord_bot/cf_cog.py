@@ -1,6 +1,7 @@
-import discord, requests
+import discord
 from discord.ext import commands
-import cf, os, random, asyncio, userdata, time
+import cf, random, asyncio, userdata, time, pygal, os
+
 
 def setup(bot):
     bot.add_cog(Codeforces(bot))
@@ -19,6 +20,34 @@ class Codeforces(commands.Cog):
             self.not_registered_message(ctx)
             return ""
         return handle
+    
+    def radar_chart(self, user, data):
+        from pygal.style import Style
+        custom_style = Style(
+            background= 'rgba(240, 240, 240, 1)',
+            plot_background = 'rgba(240, 240, 240, 1)',
+            foreground = 'rgba(0, 0, 0, 0.9)',
+            foreground_strong = 'rgba(0, 0, 0, 0.9)',
+            foreground_subtle = 'rgba(0, 0, 0, 0.5)',
+            opacity='.6',
+            opacity_hover='.9',
+            colors = ('rgb(12,55,149)', 'rgb(117,38,65)', 'rgb(228,127,0)', 'rgb(159,170,0)','rgb(149,12,12)'),
+            title_font_size = 30,
+            label_font_size	= 18,
+            major_label_font_size = 18,
+            value_label_font_size = 18,
+            font_family= 'Consolas, "Liberation Mono", Menlo, Courier, monospace'
+        )
+
+        chart = pygal.Radar(fill = True, style = custom_style)
+        x_axis = [v[0] for v in data]
+        y_axis = [v[1] for v in data]
+        chart.x_labels = x_axis
+        chart.add(user, y_axis)
+        dir_path = os.path.dirname(os.path.realpath(__file__)) + "/tmp/" + user + ".png"
+        chart.render_to_png(filename = dir_path)
+        print(dir_path)
+        return dir_path
 
     @commands.command(brief = "Enter a tag and a problem difficulty")
     async def chal(self, ctx, dif = 1500, tag = "all"):
@@ -141,10 +170,11 @@ class Codeforces(commands.Cog):
         
         #check if user in database
         if self.check_register(ctx) == "" : return
-                # get ratings
+        # get ratings
         ratings = self.db.get_ratings(ctx.author.id)
         string = ""
         for text, rating in ratings:
             string += "{} : {}\n".format(text, rating)
+        directory = self.radar_chart(ctx.author.name, ratings[1:])
         await ctx.send(string)
-
+        await ctx.send(file=discord.File(directory))

@@ -50,11 +50,11 @@ class Codeforces:
 
     def get_ratings(self, discord_id):
         sql = '''
-            SELECT cf_handle, implementation_rating, dp_rating, graph_rating, math_rating, datastructure_rating, greedy_rating FROM USERS 
+            SELECT cf_handle, implementation_rating, datastructure_rating, graph_rating, math_rating, dp_rating, greedy_rating FROM USERS 
             WHERE discord_id = ?
         '''
         res = self.conn.execute(sql, (discord_id,))
-        texts = ["handle", "implementation", "dp", "graphs", "math", "data structures", "greedy"]
+        texts = ["handle", "implementation", "data structures", "graphs", "math", "dp", "greedy"]
         ratings = res.fetchone()
         print(ratings)
         return list(zip(texts, ratings))
@@ -62,7 +62,7 @@ class Codeforces:
     def update_ratings(self, discord_id, ratings):
         ratings = ratings[1:]
         print(ratings)
-        texts = ["implementation_rating", "dp_rating", "graph_rating", "math_rating", "datastructure_rating", "greedy_rating"]
+        texts = ["implementation_rating", "datastructure_rating", "graph_rating", "math_rating", "dp_rating" , "greedy_rating"]
         for text, rating in list(zip(texts, ratings)):
             sql = "UPDATE USERS SET {} = ? WHERE discord_id = ?".format(text)
             self.conn.execute(sql, (rating, discord_id))

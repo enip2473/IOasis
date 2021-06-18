@@ -89,9 +89,10 @@ class Codeforces(commands.Cog):
         # update ratings
         problemname, time = challenge
         problem_rating, problem_tags = cf.get_problem(problemname)
+        problem_tags = cf.to_six_main_tags(problem_tags)
         user_tags = self.db.get_ratings(ctx.author.id)
         new_rating = []
-
+        # check if the tag is in the problems
         for tag, user_rating in user_tags:
             if tag in problem_tags:
                 message, change = cf.change_rating(user_rating, problem_rating, False)
@@ -123,6 +124,7 @@ class Codeforces(commands.Cog):
             # TODO : check time
             reply = "Challenge complete!\nRating changes :\n"
             problem_rating, problem_tags = cf.get_problem(problemname)
+            problem_tags = cf.to_six_main_tags(problem_tags)
             user_tags = self.db.get_ratings(ctx.author.id)
             new_rating = []
             

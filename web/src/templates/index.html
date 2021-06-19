@@ -5,10 +5,10 @@
         <h1>Index</h1>
         <a href="/admin/"> Admin Page </a>
         <br>
-        <a href="/accounts/register/"> Register </a>
+        <a href={% url 'register' %}> Register </a>
         <br>
-        <a href="/accounts/login/"> login </a>
+        <a href={% url 'login' %}> login </a>
         <br>
-        <a href="/accounts/logout"> logout </a>
+        <a href={% url 'logout' %}> logout </a>
     </div>
 {% endblock %}

@@ -37,11 +37,11 @@
                 </ul>
                 <form class="form-inline my-2 my-lg-0">
                     {% if user.is_authenticated %}
-                        <span class="h4 mx-1" style="color: white"> {{ user.username }} </span>
-                        <a class="nav-link" href="/accounts/logout/" style="color: white"> 登出 <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'user:edit' user_id=user.id %}" style="color: white"> {{ user.username }} <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'logout' %}" style="color: white"> 登出 <span class="sr-only">(current)</span></a>
                     {% else %}
-                        <a class="nav-link" href="/accounts/login/" style="color: white"> 登入 <span class="sr-only">(current)</span></a>
-                        <a class="nav-link" href="/accounts/register/" style="color: white"> 註冊 <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'login' %}" style="color: white"> 登入 <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'register' %}" style="color: white"> 註冊 <span class="sr-only">(current)</span></a>
                     {% endif %}
                 </button>
                 </form>

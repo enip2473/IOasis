@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %} 使用者資訊 {% endblock %}
+{% block body %}
+    <div class="container">
+        <form action="" method="POST">
+            {% csrf_token %}
+            <p>
+                <p style="color: red">{{ form.visible_fields.0.errors }}</p>
+                <label for="{{ form.visible_fields.0.auto_id }}"> {{ form.visible_fields.0.label_tag }} </label>
+                <input type="text" name={{ form.visible_fields.0.name }} class="form-control" required="" id="{{ form.visible_fields.0.auto_id }}" value="{{ form.initial.username }}">
+                {{ form.visible_fields.0.help_text }}
+            </p>
+            <p>
+                <p style="color: red">{{ form.visible_fields.1.errors }}</p>
+                <label for="{{ form.visible_fields.1.auto_id }}"> {{ form.visible_fields.1.label_tag }} </label>
+                <input type="text" name={{ form.visible_fields.1.name }} class="form-control" required="" id="{{ form.visible_fields.1.auto_id }}" value="{{ form.initial.email }}">
+                {{ form.visible_fields.0.help_text }}
+            </p>
+            <p>
+                <p style="color: red">{{ form.visible_fields.2.errors }}</p>
+                <label for="{{ form.visible_fields.2.auto_id }}"> {{ form.visible_fields.2.label_tag }} </label>
+                <input type="text" name={{ form.visible_fields.2.name }} class="form-control" required="" id="{{ form.visible_fields.2.auto_id }}" value="{{ form.initial.CF_handle }}">
+                {{ form.visible_fields.2.help_text }}
+            </p>
+            <input type="submit" value="更新">
+        </form>
+    </div>
+{% endblock %}

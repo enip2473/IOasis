@@ -1,4 +1,4 @@
-"""scist_scoreboard URL Configuration
+"""IOasis URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
@@ -16,12 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 from django.contrib.auth import views
-from scist_scoreboard.views import index, login, logout, register
+from django.urls.conf import include
+from IOasis.views import index
+from django.conf.urls import include
+from user.views import login, logout, register
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/login/', login, name='login'),
-    path('accounts/logout/', logout, name='logout'),
-    path('accounts/register/', register, name='register'),
-    re_path(r'^$|^index/$', index),
+    path('admin/', admin.site.urls, name='admin'),
+    path('login/', login, name='login'),
+    path('logout/', logout, name='logout'),
+    path('register/', register, name='register'),
+    re_path(r'^$|^index/$', index, name='index'),
+    path('user/', include('user.urls', namespace='user')),
 ]

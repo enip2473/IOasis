@@ -30,8 +30,8 @@ def query(tag : str, rating : int): # return a list of problems with specific ta
     return result
 
 # if found return the time of that submission, else return -1
-def status(user : str):
-    url = "https://codeforces.com/api/user.status?handle={}&from=1&count=5".format(user)
+def status(user : str, cnt = 10):
+    url = "https://codeforces.com/api/user.status?handle={}&from=1&count={}".format(user, cnt)
     print(url)
     r = requests.get(url = url)
     print(r.status_code)
@@ -76,6 +76,16 @@ def to_six_main_tags(tags):
     print(ans_list)
     return ans_list
 
+def solved_problems(handle):
+    result = status(handle, 1000)
+    solved = []
+    for res in result:
+        name = "{}/{}".format(res["problem"]["contestId"], res["problem"]["index"])
+        if res["verdict"] == "OK":
+            solved.append(name)
+    solved = list(set(solved))
+    print(solved[:10])
+    return solved
 
 if __name__ == "__main__":
     print(status("enip"))

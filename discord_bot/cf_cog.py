@@ -13,7 +13,7 @@ class Codeforces(commands.Cog):
         cf.init()
     
     def check_register(self, ctx):
-        if handle := self.db.get_handle(ctx.author.id) == "":
+        if (handle := self.db.get_handle(ctx.author.id)) == "":
             return ""
         return handle
     
@@ -35,7 +35,7 @@ class Codeforces(commands.Cog):
             font_family= 'Consolas, "Liberation Mono", Menlo, Courier, monospace'
         )
 
-        chart = pygal.Radar(fill = True, style = custom_style)
+        chart = pygal.Radar(fill = True, style = custom_style, width = 1024, height = 1024)
         x_axis = [v[0] for v in data]
         y_axis = [v[1] for v in data]
         chart.x_labels = x_axis
@@ -48,7 +48,7 @@ class Codeforces(commands.Cog):
     @commands.command(brief = "Enter a tag and a problem difficulty")
     async def chal(self, ctx, dif = 1500, tag = "all"):
         # check if the user have registered his handle 
-        if (handle := self.check_register(ctx)) == "" :
+        if (handle := self.check_register(ctx)) == "":
             await ctx.send("You haven't register your handle!\nType .register to register.")
             return
         # check for ongoing challenges
@@ -58,10 +58,12 @@ class Codeforces(commands.Cog):
             return
 
         try:# return a problem
-            problem = random.choice(cf.query(tag, dif))
+            problems = cf.query(tag, dif)
+            problems = [problem[0] for problem in problems]
             solved = cf.solved_problems(handle)
-            print(problem)
-            problemname = problem[0]
+            problems = [problem for problem in problems if problem not in solved]
+            problemname = random.choice(problems)
+            print(problemname)
         except IndexError:
             await ctx.send("No such problem!")
             return
@@ -182,5 +184,4 @@ class Codeforces(commands.Cog):
         for text, rating in ratings:
             embed.add_field(name = text, value = rating)
         directory = self.radar_chart(ctx.author.name, ratings)
-        await ctx.send(embed = embed)
-        await ctx.send(file=discord.File(directory))
+        await ctx.send(embed = embed, file = discord.File(directory))

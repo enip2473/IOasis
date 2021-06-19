@@ -14,7 +14,7 @@ class Codeforces(commands.Cog):
         cf.init()
     
     def check_register(self, ctx):
-        if handle := self.db.get_handle(ctx.author.id) == "":
+        if (handle := self.db.get_handle(ctx.author.id)) == "":
             return ""
         return handle
     
@@ -36,7 +36,7 @@ class Codeforces(commands.Cog):
             value_label_font_size = 18,
             font_family= 'Consolas, "Liberation Mono", Menlo, Courier, monospace'
         )
-        
+
         config = Config()
         config.width = 700
         config.height = 730
@@ -60,7 +60,7 @@ class Codeforces(commands.Cog):
     @commands.command(brief = "Enter a tag and a problem difficulty")
     async def chal(self, ctx, dif = 1500, tag = "all"):
         # check if the user have registered his handle 
-        if (handle := self.check_register(ctx)) == "" :
+        if (handle := self.check_register(ctx)) == "":
             await ctx.send("You haven't register your handle!\nType .register to register.")
             return
         # check for ongoing challenges
@@ -70,10 +70,12 @@ class Codeforces(commands.Cog):
             return
 
         try:# return a problem
-            problem = random.choice(cf.query(tag, dif))
+            problems = cf.query(tag, dif)
+            problems = [problem[0] for problem in problems]
             solved = cf.solved_problems(handle)
-            print(problem)
-            problemname = problem[0]
+            problems = [problem for problem in problems if problem not in solved]
+            problemname = random.choice(problems)
+            print(problemname)
         except IndexError:
             await ctx.send("No such problem!")
             return
@@ -193,7 +195,6 @@ class Codeforces(commands.Cog):
         embed = discord.Embed(title = ctx.author.name + "'s Profile")
         for text, rating in ratings:
             embed.add_field(name = text, value = rating)
-
         file = discord.File(self.radar_chart(ctx.author.name, ratings), filename="image.png")
         embed.set_image(url="attachment://image.png")
         await ctx.send(file=file, embed=embed)

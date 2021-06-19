@@ -12,13 +12,9 @@ class Codeforces(commands.Cog):
         self.bot = bot
         self.db = userdata.Codeforces()
         cf.init()
-
-    async def not_registered_message(self, ctx):
-        await ctx.send("You haven't register your handle!\nType .register to register.")
     
     def check_register(self, ctx):
         if handle := self.db.get_handle(ctx.author.id) == "":
-            self.not_registered_message(ctx)
             return ""
         return handle
     
@@ -58,17 +54,23 @@ class Codeforces(commands.Cog):
     @commands.command(brief = "Enter a tag and a problem difficulty")
     async def chal(self, ctx, dif = 1500, tag = "all"):
         # check if the user have registered his handle 
-        if self.check_register(ctx) == "" : return
+        if (handle := self.check_register(ctx)) == "" :
+            await ctx.send("You haven't register your handle!\nType .register to register.")
+            return
         # check for ongoing challenges
         challenge = self.db.get_challenge(ctx.author.id)
         if challenge != None:
             await ctx.send("You have an ongoing challenge.\nType .ff to forfeit it.")
             return
 
-        # return a problem
-        problem = random.choice(cf.query(tag, dif))
-        print(problem)
-        problemname = problem[0]
+        try:# return a problem
+            problem = random.choice(cf.query(tag, dif))
+            solved = cf.solved_problems(handle)
+            print(problem)
+            problemname = problem[0]
+        except IndexError:
+            await ctx.send("No such problem!")
+            return
 
         embed = discord.Embed(title="Codeforces {}".format(problemname), url = "https://codeforces.com/problemset/problem/{}".format(problemname), description = "Challenge will start in 15 seconds!\nType cancel to cancel the challenge.")
         await ctx.send(embed = embed)
@@ -91,7 +93,7 @@ class Codeforces(commands.Cog):
             await ctx.send("You don't have any ongoing challenge!")
             return
         
-        reply = "Challenge failed.\nRating changes :\n"
+        embed = discord.Embed(title="Challenge failed. Rating changes :", description="", color=0x8308af)
         # update ratings
         problemname, time = challenge
         problem_rating, problem_tags = cf.get_problem(problemname)
@@ -102,7 +104,7 @@ class Codeforces(commands.Cog):
         for tag, user_rating in user_tags:
             if tag in problem_tags:
                 message, change = cf.change_rating(user_rating, problem_rating, False)
-                reply += "{} : {}".format(tag, message)
+                embed.add_field(name = tag, value = message, inline = True)
                 user_rating += change
             new_rating.append(user_rating)
 
@@ -110,9 +112,7 @@ class Codeforces(commands.Cog):
         self.db.update_ratings(ctx.author.id, new_rating)
         self.db.delete_challenge(ctx.author.id)
         
-        reply = reply[:-1] # To remove the last \n
-        print(reply)
-        await ctx.send(reply)
+        await ctx.send(embed = embed)
 
     @commands.command(brief = "Finish the challenge")
     async def finish(self, ctx):
@@ -128,7 +128,7 @@ class Codeforces(commands.Cog):
 
         if (time := cf.check_verdict(handle, problemname, "OK")) > 0:
             # TODO : check time
-            reply = "Challenge complete!\nRating changes :\n"
+            embed = discord.Embed(title="Challenge complete!", description="Rating changes :", color=0x09ec6b)
             problem_rating, problem_tags = cf.get_problem(problemname)
             problem_tags = cf.to_six_main_tags(problem_tags)
             user_tags = self.db.get_ratings(ctx.author.id)
@@ -137,26 +137,27 @@ class Codeforces(commands.Cog):
             for tag, user_rating in user_tags:
                 if tag in problem_tags:
                     message, change = cf.change_rating(user_rating, problem_rating, True)
-                    reply += "{} : {}".format(tag, message)
+                    embed.add_field(name = tag, value = message, inline = False)
                     user_rating += change
                 new_rating.append(user_rating)
             
             self.db.delete_challenge(ctx.author.id)
             self.db.update_ratings(ctx.author.id, new_rating)
-            
-            reply = reply[:-1] # To remove the last \n
-            print(reply)
-            await ctx.send(reply) 
+             # To remove the last \n
+            await ctx.send(embed = embed) 
             
         else:
             await ctx.send("You haven't completed your {} challenge.\nTo forfeit, enter .ff.".format(problemname))
 
     @commands.command(brief = "Register your codeforces account")
-    async def register(self, ctx, handle): 
+    async def register(self, ctx, handle = ""): 
 
+        if handle == "":
+            await ctx.send("Usage : .register <your_handle>")
+            return
         #check if user in database
         if (cf_handle := self.db.get_handle(ctx.author.id)) != "":
-            await ctx.send("You have already registered !\nYour handle is {}.".format(cf_handle))
+            await ctx.send("You have already registered!\nYour handle is {}.".format(cf_handle))
             return
         
         # ask user to submit a CE
@@ -177,12 +178,15 @@ class Codeforces(commands.Cog):
     async def profile(self, ctx): 
         
         #check if user in database
-        if self.check_register(ctx) == "" : return
+        if self.check_register(ctx) == "" : 
+            await ctx.send("You haven't register your handle!\nType .register to register.")
+            return
         # get ratings
         ratings = self.db.get_ratings(ctx.author.id)
-        string = ""
+        ratings = ratings[1:]
+        embed = discord.Embed(title = ctx.author.name + "'s Profile")
         for text, rating in ratings:
-            string += "{} : {}\n".format(text, rating)
-        directory = self.radar_chart(ctx.author.name, ratings[1:])
-        await ctx.send(string)
+            embed.add_field(name = text, value = rating)
+        directory = self.radar_chart(ctx.author.name, ratings)
+        await ctx.send(embed = embed)
         await ctx.send(file=discord.File(directory))

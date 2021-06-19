@@ -50,12 +50,13 @@ def change_rating(user_rating : int, problem_rating : int, solved : bool):
     print(user_rating, problem_rating)
     prob = 1 / (1 + (10 ** ((problem_rating - user_rating) / 400)))
     
-    base = max((problem_rating - user_rating) // 2, 100)
+    base = 100
+    if solved : base = max(base, (problem_rating - user_rating) // 2)
     
     dif = round(base * (-prob + int(solved)))
     
     change = ("+" if dif > 0 else "")
-    res_str = "{} -> {} ({}{})\n".format(user_rating, user_rating + dif, change, dif)
+    res_str = "{} -> {} ({}{})".format(user_rating, user_rating + dif, change, dif)
     return res_str, dif
 
 def get_problem(problemname : str):

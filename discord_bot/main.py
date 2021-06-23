@@ -13,6 +13,7 @@ async def on_ready():
 async def reload(ctx, extension):
     bot.reload_extension(extension)
     print("Reload complete.")
+    await ctx.send("Reload complete.")
 
 bot.load_extension("cf_cog")
 bot.run(token)

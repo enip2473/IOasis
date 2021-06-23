@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from pygal.config import CommonConfig
 import cf, random, asyncio, userdata, time, pygal, os
 
 
@@ -19,23 +20,34 @@ class Codeforces(commands.Cog):
     
     def radar_chart(self, user, data):
         from pygal.style import Style
+        from pygal import Config
         custom_style = Style(
             background= 'rgba(240, 240, 240, 1)',
             plot_background = 'rgba(240, 240, 240, 1)',
             foreground = 'rgba(0, 0, 0, 0.9)',
             foreground_strong = 'rgba(0, 0, 0, 0.9)',
             foreground_subtle = 'rgba(0, 0, 0, 0.5)',
-            opacity='.6',
+            opacity='.3',
             opacity_hover='.9',
             colors = ('rgb(12,55,149)', 'rgb(117,38,65)', 'rgb(228,127,0)', 'rgb(159,170,0)','rgb(149,12,12)'),
             title_font_size = 30,
-            label_font_size	= 18,
+            label_font_size	= 20,
             major_label_font_size = 18,
             value_label_font_size = 18,
             font_family= 'Consolas, "Liberation Mono", Menlo, Courier, monospace'
         )
 
-        chart = pygal.Radar(fill = True, style = custom_style, width = 1024, height = 1024)
+        config = Config()
+        config.width = 700
+        config.height = 730
+        config.fill = True
+        config.style = custom_style
+        config.stroke_style = {'width': 5.0}
+        config.show_legend = False
+        config.margin_left = -39
+        config.margin_right = -17
+        config.margin_bottom = -20
+        chart = pygal.Radar(config)
         x_axis = [v[0] for v in data]
         y_axis = [v[1] for v in data]
         chart.x_labels = x_axis
@@ -175,7 +187,7 @@ class Codeforces(commands.Cog):
             await ctx.send("{} Network Error. Contact admin or try it later.".format(ctx.author.mention))
 
 
-    @commands.command(brief = "See you current rating on every subject.")
+    @commands.command(brief = "See your current rating on every subject.")
     async def profile(self, ctx): 
         
         #check if user in database
@@ -188,5 +200,6 @@ class Codeforces(commands.Cog):
         embed = discord.Embed(title = ctx.author.name + "'s Profile")
         for text, rating in ratings:
             embed.add_field(name = text, value = rating)
-        directory = self.radar_chart(ctx.author.name, ratings)
-        await ctx.send(embed = embed, file = discord.File(directory))
+        file = discord.File(self.radar_chart(ctx.author.name, ratings), filename="image.png")
+        embed.set_image(url="attachment://image.png")
+        await ctx.send(file=file, embed=embed)

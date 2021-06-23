@@ -164,11 +164,16 @@ class Codeforces(commands.Cog):
         await asyncio.sleep(60)
 
         #check if there's a CE
-        if cf.check_verdict(handle, problem[0], "COMPILATION_ERROR") > 0:
-            await ctx.send("Successfully registered {}'s handle as {}".format(ctx.author.mention, handle))
-            self.db.insert_user(ctx.author.id, handle)
-        else:
-            await ctx.send("{} Failed. Try again.".format(ctx.author.mention))
+
+        try:
+            if cf.check_verdict(handle, problem[0], "COMPILATION_ERROR") > 0:
+                await ctx.send("Successfully registered {}'s handle as {}".format(ctx.author.mention, handle))
+                self.db.insert_user(ctx.author.id, handle)
+            else:
+                await ctx.send("{} Failed. Try again.".format(ctx.author.mention))
+        except:
+            await ctx.send("{} Network Error. Contact admin or try it later.".format(ctx.author.mention))
+
 
     @commands.command(brief = "See you current rating on every subject.")
     async def profile(self, ctx): 

@@ -80,7 +80,7 @@ class Codeforces(commands.Cog):
             await ctx.send("No such problem!")
             return
 
-        embed = discord.Embed(title="Codeforces {}".format(problemname), url = "https://codeforces.com/problemset/problem/{}".format(problemname), description = "Challenge will start in 15 seconds!\nType cancel to cancel the challenge.")
+        embed = discord.Embed(title="Codeforces {}".format(problemname), url = "https://codeforces.com/problemset/problem/{}".format(problemname), description = "Challenge will start in 15 seconds!\nType .cancel to cancel the challenge.")
         await ctx.send(embed = embed)
 
         # wait for 15 seconds
@@ -101,9 +101,21 @@ class Codeforces(commands.Cog):
             await ctx.send("You don't have any ongoing challenge!")
             return
         
-        embed = discord.Embed(title="Challenge failed. Rating changes :", description="", color=0x8308af)
+        #get solving time
+        handle = self.db.get_handle(ctx.author.id)
+        problemname, start_time = challenge
+        if (end_time := cf.check_verdict(handle, problemname, "OK")) < 0:
+            end_time = round(time.time())
+        solve_time = max(0, round(end_time - start_time))
+        print(start_time, end_time, solve_time) 
+
+        embed = discord.Embed(
+            title="Challenge Failed. Rating Changes :",
+            description = F"Time spent {solve_time//3600}:{(solve_time//60)%60:02d}:{solve_time%60:02d}",
+            color=0x8308af
+        )
+        
         # update ratings
-        problemname, time = challenge
         problem_rating, problem_tags = cf.get_problem(problemname)
         problem_tags = cf.to_six_main_tags(problem_tags)
         user_tags = self.db.get_ratings(ctx.author.id)
@@ -132,11 +144,24 @@ class Codeforces(commands.Cog):
         
         #get user status
         handle = self.db.get_handle(ctx.author.id)
-        problemname, time = challenge
+        problemname, start_time = challenge
 
-        if (time := cf.check_verdict(handle, problemname, "OK")) > 0:
-            # TODO : check time
-            embed = discord.Embed(title="Challenge complete!", description="Rating changes :", color=0x09ec6b)
+        if (end_time := cf.check_verdict(handle, problemname, "OK")) > 0:
+            # get solving time 
+            solve_time = max(0, round(end_time - start_time))
+            print(start_time, end_time, solve_time) 
+
+            # time exceeded
+            if solve_time > 3600: 
+                await ctx.invoke(self.bot.get_command('ff')) 
+                return 
+
+            # challenge succeed
+            embed = discord.Embed(
+                title="Challenge Completed! Rating Changes :", 
+                description=F"Time spent {solve_time//3600}:{(solve_time//60)%60:02d}:{solve_time%60:02d}",
+                color=0x09ec6b
+            )
             problem_rating, problem_tags = cf.get_problem(problemname)
             problem_tags = cf.to_six_main_tags(problem_tags)
             user_tags = self.db.get_ratings(ctx.author.id)
@@ -151,7 +176,7 @@ class Codeforces(commands.Cog):
             
             self.db.delete_challenge(ctx.author.id)
             self.db.update_ratings(ctx.author.id, new_rating)
-             # To remove the last \n
+            # To remove the last \n
             await ctx.send(embed = embed) 
             
         else:

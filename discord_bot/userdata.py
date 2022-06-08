@@ -10,12 +10,12 @@ class Codeforces:
             password TEXT,
             discord_id INTEGER,
             cf_handle TEXT,
-            implementation_rating INTEGER DEFAULT 500,
-            dp_rating INTEGER DEFAULT 500,
-            graph_rating INTEGER DEFAULT 500,
-            math_rating INTEGER DEFAULT 500,
-            datastructure_rating INTEGER DEFAULT 500,
-            greedy_rating INTEGER DEFAULT 500);
+            implementation_rating INTEGER DEFAULT 1000,
+            dp_rating INTEGER DEFAULT 1000,
+            graph_rating INTEGER DEFAULT 1000,
+            math_rating INTEGER DEFAULT 1000,
+            datastructure_rating INTEGER DEFAULT 1000,
+            greedy_rating INTEGER DEFAULT 1000);
         ''')
         self.conn.execute('''
             CREATE TABLE IF NOT EXISTS CHALLENGES
@@ -56,12 +56,11 @@ class Codeforces:
         res = self.conn.execute(sql, (discord_id,))
         texts = ["handle", "implementation", "data structures", "graphs", "math", "dp", "greedy"]
         ratings = res.fetchone()
-        print(ratings)
+        print(F"Current rating: {ratings}")
         return list(zip(texts, ratings))
     
     def update_ratings(self, discord_id, ratings):
-        ratings = ratings[1:]
-        print(ratings)
+        print(F"Update rating: {ratings}")
         texts = ["implementation_rating", "datastructure_rating", "graph_rating", "math_rating", "dp_rating" , "greedy_rating"]
         for text, rating in list(zip(texts, ratings)):
             sql = "UPDATE USERS SET {} = ? WHERE discord_id = ?".format(text)

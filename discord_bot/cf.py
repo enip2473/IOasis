@@ -24,7 +24,7 @@ def query(tag : str, rating : int): # return a list of problems with specific ta
     # problem[0] : name, problem[1] : rating, problem[2] : tags
     result = [problem for problem in problems if problem[1] == rating]
     if tag == "all":
-        return result
+        result = [problem for problem in result if len(problem[2]) > 0]
     else:
         result = [problem for problem in result if tag in problem[2]]
     return result
@@ -34,7 +34,7 @@ def status(user : str, cnt = 10):
     url = "https://codeforces.com/api/user.status?handle={}&from=1&count={}".format(user, cnt)
     print(url)
     r = requests.get(url = url)
-    print(r.status_code)
+    print(F"API request status: {r.status_code}")
     result = r.json()["result"]
     return result
 
@@ -46,14 +46,14 @@ def check_verdict(handle : str, problemname : str, verdict : str):
             return res["creationTimeSeconds"]
     return -1
 
-def change_rating(user_rating : int, problem_rating : int, solved : bool):
-    print(user_rating, problem_rating)
+# weight is currently set to 1/(# of tags)
+def change_rating(weight : float, user_rating : int, problem_rating : int, solved : bool):
     prob = 1 / (1 + (10 ** ((problem_rating - user_rating) / 400)))
     
     base = 100
     if solved : base = max(base, (problem_rating - user_rating) // 2)
     
-    dif = round(base * (-prob + int(solved)))
+    dif = round(base * (-prob + int(solved)) * weight)
     
     change = ("+" if dif > 0 else "")
     res_str = "{} -> {} ({}{})".format(user_rating, user_rating + dif, change, dif)
@@ -73,18 +73,19 @@ def to_six_main_tags(tags):
         except:
             pass
     ans_list = list(ans)
-    print(ans_list)
     return ans_list
 
 def solved_problems(handle):
     result = status(handle, 1000)
     solved = []
     for res in result:
-        name = "{}/{}".format(res["problem"]["contestId"], res["problem"]["index"])
-        if res["verdict"] == "OK":
-            solved.append(name)
+        try: 
+            name = "{}/{}".format(res["problem"]["contestId"], res["problem"]["index"])
+            if res["verdict"] == "OK":
+                solved.append(name)
+        except: 
+            pass
     solved = list(set(solved))
-    print(solved[:10])
     return solved
 
 if __name__ == "__main__":
